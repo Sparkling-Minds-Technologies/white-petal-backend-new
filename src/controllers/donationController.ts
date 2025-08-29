@@ -142,16 +142,24 @@ export const stripeWebhook = (req: Request, res: Response): Promise<void> => {
         }
         donation.status = "completed";
 
-        return donation.save().then(() => {
-          return User.findByIdAndUpdate(
-            donation.userId,
-            { $addToSet: { donationHistory: donation._id } },
-            { new: true }
-          );
+        return donation.save().then((savedDonation) => {
+          if (donation.userId) {
+            return User.findByIdAndUpdate(
+              donation.userId,
+              { $addToSet: { donationHistory: donation._id } },
+              { new: true }
+            ).then(() => savedDonation);
+          }
+          return savedDonation;
         });
       })
-      .then(() => {
-        if (!res.headersSent) res.status( ResponseCode.SUCCESS).send("  Donation completed successfully");
+      .then((savedDonation) => {
+        if (savedDonation && !res.headersSent) {
+          res.status(ResponseCode.SUCCESS).json({
+            message: "Donation completed successfully",
+            donationId: savedDonation._id, // 👈 added
+          });
+        }
       })
       .catch((error) => {
         console.error("Error handling event:", error);
@@ -167,13 +175,9 @@ export const stripeWebhook = (req: Request, res: Response): Promise<void> => {
 export const getDonationDetailsbyId = (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user?._id; 
 
-  if (!userId) {
-    res.status(ResponseCode.BAD_REQUEST).json({ message: 'User ID is required but not found in the request' });
-    return Promise.resolve(); 
-  }
+  const query = userId ? { userId } : {}; 
 
-  // Find donations made by the authenticated user only
-  return Donation.find({ userId })
+  return Donation.find(query)
     .populate({ path: 'userId', select: '-password' }) 
     .then((donations) => {
       if (!donations || donations.length === 0) {

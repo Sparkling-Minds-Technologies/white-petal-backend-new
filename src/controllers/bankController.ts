@@ -11,18 +11,29 @@ export const createBankAccount = async (req: AuthRequest, res: Response): Promis
       return;
     }
 
-    const { accountNumber, bankName, ifscCode, branch } = req.body;
-    if (!accountNumber || !bankName || !ifscCode || !branch) {
-      res.status(ResponseCode.VALIDATION_ERROR).json({ message: "All fields are required" });
+    const { accountNumber, accountHolderName, bankName, ifscCode, branchName } = req.body;
+
+    const missingFields: string[] = [];
+    if (!accountNumber) missingFields.push("accountNumber");
+    if (!accountHolderName) missingFields.push("accountHolderName");
+    if (!bankName) missingFields.push("bankName");
+    if (!ifscCode) missingFields.push("ifscCode");
+    if (!branchName) missingFields.push("branchName");
+
+    if (missingFields.length > 0) {
+      res.status(ResponseCode.VALIDATION_ERROR).json({
+        message: `Missing required fields: ${missingFields.join(", ")}`
+      });
       return;
     }
 
     const bankAccount = new BankAccount({
       userId: req.user._id,
       accountNumber,
+      accountHolderName,
       bankName,
       ifscCode,
-      branch,
+      branchName,
     });
 
     await bankAccount.save();
@@ -83,11 +94,11 @@ export const updateBankAccount = async (req: AuthRequest, res: Response): Promis
     }
 
     const { id } = req.params;
-    const { accountNumber, bankName, ifscCode, branch } = req.body;
+    const { accountNumber, accountHolderName, bankName, ifscCode, branchName } = req.body;
 
     const account = await BankAccount.findOneAndUpdate(
       { _id: id, userId: req.user._id },
-      { accountNumber, bankName, ifscCode, branch },
+      { accountNumber, accountHolderName, bankName, ifscCode, branchName },
       { new: true }
     );
 

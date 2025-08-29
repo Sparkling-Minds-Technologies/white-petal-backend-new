@@ -31,7 +31,6 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 					return;
 				}
 				req.user = user;
-				console.log("User ",req.user)
 				next();
 			})
 			.catch(() => res.status(ResponseCode.SERVER_ERROR).json({ message: "Server error" }));
