@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import UserModel, { IUser } from "../models/user";
+import UserModel, { AllowedTabType, IUser } from "../models/user";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ResponseCode } from "../lib/Utils/ResponseCode";
@@ -7,7 +7,7 @@ import { Res } from "../lib/datatype/common";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import { resetPasswordTemplate, transporter, userCreatedByAdminTemplate } from "../lib/Utils/emailConfig";
-import { RESET_PASSWORD_EXPIRE } from "../lib/Utils/constants";
+import { ALLOWED_TABS, RESET_PASSWORD_EXPIRE } from "../lib/Utils/constants";
 import { AuthRequest } from "../lib/Utils/types";
 dotenv.config();
 
@@ -722,3 +722,51 @@ export const updateUserProfile = (req: AuthRequest, res: Response): void => {
   }
 }; 
 
+export const updateAllowedTabs = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { allowedTabs } = req.body;
+
+    if (!allowedTabs || !Array.isArray(allowedTabs)) {
+      res.status(ResponseCode.BAD_REQUEST).json({
+        message: "allowedTabs must be a non-empty array of strings",
+      });
+      return;
+    }
+
+    // Validate each tab against allowed enum
+    const invalidTabs = allowedTabs.filter((tab: string) => !ALLOWED_TABS.includes(tab as AllowedTabType));
+    if (invalidTabs.length > 0) {
+      res.status(ResponseCode.BAD_REQUEST).json({
+        message: `Invalid tabs: ${invalidTabs.join(", ")}. Allowed tabs are: ${ALLOWED_TABS.join(", ")}`,
+      });
+      return;
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      res.status(ResponseCode.NOT_FOUND).json({ message: "User not found" });
+      return;
+    }
+
+    if (user.role !== "admin" && user.role !== "superadmin") {
+      res.status(ResponseCode.FORBIDDEN).json({ message: "Only admin or superadmin can have allowedTabs" });
+      return;
+    }
+
+    user.allowedTabs = allowedTabs as AllowedTabType[];
+    await user.save();
+
+    res.status(ResponseCode.SUCCESS).json({
+      message: "allowedTabs updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        role: user.role,
+        allowedTabs: user.allowedTabs,
+      },
+    });
+  } catch (error: any) {
+    res.status(ResponseCode.SERVER_ERROR).json({ message: error.message });
+  }
+};

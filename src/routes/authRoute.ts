@@ -2,8 +2,8 @@ import { Router } from "express"
 import { authenticate, authorizeRoles } from "../lib/Utils/Middleware";
 const Route: Router = Router()
 
-import { ADMIN, SCHOOL } from "../lib/Utils/constants";
-import { approveUser, createUserByAdmin, forgotPassword, getApprovedUsers, getPendingUsers, getUserProfile, login, logout, register, rejectUserbyAdmin, RejectUsers, resetPassword, updateUserProfile } from "../controllers/authController";
+import { ADMIN, SCHOOL, SUPERADMIN } from "../lib/Utils/constants";
+import { approveUser, createUserByAdmin, forgotPassword, getApprovedUsers, getPendingUsers, getUserProfile, login, logout, register, rejectUserbyAdmin, RejectUsers, resetPassword, updateAllowedTabs, updateUserProfile } from "../controllers/authController";
 import uploadImages from "../lib/Utils/uploadImages";
 
 
@@ -40,16 +40,16 @@ Route.get("/getAllApprovalUsers",  authenticate,
   authorizeRoles(ADMIN), getApprovedUsers);
 
 
-  // Get all users who need approval
+// Get all users who need approval
 Route.get("/getAllPendingUsers",  authenticate,
   authorizeRoles(ADMIN), getPendingUsers);
 
-  // Delete user permanently
+// Delete user permanently
 Route.delete("/delete-user/:userId",  authenticate,
   authorizeRoles(ADMIN), RejectUsers);
 
 
-  // Admin also can create instructor or school users
+// Admin also can create instructor or school users
 Route.post(
     "/create-user-by-admin",
     authenticate,
@@ -57,5 +57,6 @@ Route.post(
     createUserByAdmin
   );
 
+Route.put("/:userId/allowedTabs",authenticate,authorizeRoles(SUPERADMIN),updateAllowedTabs);
 
 export default Route;

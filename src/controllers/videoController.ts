@@ -5,6 +5,7 @@ import cloudinary from "../lib/Utils/Cloudinary";
 import RecycleBinModel from "../models/recycleBin";
 import { ResponseCode } from "../lib/Utils/ResponseCode";
 import { AuthRequest } from "../lib/Utils/types";
+import VideoSchoolTagsModel from "../models/videoSchoolTags";
 
 
 // Upload Video with Thumbnail
@@ -80,7 +81,7 @@ export const getAllVideos = (req: Request, res: Response): void => {
   try {
     VideoModel.find()
       .select(
-        "courseName courseContent videoUrl status description uploadedBy thumbnailUrl isPriced rank"
+        "courseName courseContent videoUrl status description uploadedBy thumbnailUrl isPriced rank tags"
       )
       .populate("uploadedBy", "name email bio profilePicture")
       .then((videos) => res.json(videos))
@@ -330,5 +331,54 @@ export const updateTags: RequestHandler = async (req: Request, res: Response) =>
   } catch (error: any) {
     console.error("Error updating tags:", error);
     res.status(ResponseCode.SERVER_ERROR).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const getAllVideosWithSchoolTags = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { schoolId } = req.query;
+
+    if (!schoolId || typeof schoolId !== "string") {
+      res
+        .status(ResponseCode.BAD_REQUEST)
+        .json({ message: "schoolId is required" });
+      return;
+    }
+
+    const videos = await VideoModel.find()
+      .select(
+        "courseName courseContent videoUrl status description uploadedBy thumbnailUrl isPriced rank tags"
+      )
+      .populate("uploadedBy", "name email bio profileImage");
+
+    const videosWithTags = await Promise.all(
+      videos.map(async (video) => {
+        const schoolTagsDoc = await VideoSchoolTagsModel.findOne({
+          videoId: video._id,
+          schoolId,
+        }).select("tags -_id");
+
+        return {
+          _id: video._id,
+          courseName: video.courseName,
+          courseContent: video.courseContent,
+          videoUrl: video.videoUrl,
+          status: video.status,
+          description: video.description,
+          uploadedBy: video.uploadedBy,
+          thumbnailUrl: video.thumbnailUrl,
+          isPriced: video.isPriced,
+          rank: video.rank,
+          videoTags: video.tags,
+          videoSchoolTags: schoolTagsDoc ? schoolTagsDoc.tags : [],
+        };
+      })
+    );
+
+    res.status(ResponseCode.SUCCESS).json({ videos: videosWithTags });
+  } catch (e: any) {
+    res
+      .status(ResponseCode.SERVER_ERROR)
+      .json({ message: e.message });
   }
 };

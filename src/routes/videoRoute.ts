@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { deleteVideo, getAllVideos, getVideoById, updateVideo, uploadVideo,getInstructorProfile, addTags, removeTags, updateTags } from "../controllers/videoController";
+import { deleteVideo, getAllVideos, getVideoById, updateVideo, uploadVideo,getInstructorProfile, addTags, removeTags, updateTags, getAllVideosWithSchoolTags } from "../controllers/videoController";
 import {upload }from "../lib/Utils/multer"; // Import Multer config
 import { authenticate, authorizeRoles } from "../lib/Utils/Middleware";
 import { ADMIN, INSTRUCTOR, SCHOOL, USER } from "../lib/Utils/constants";
@@ -22,6 +22,7 @@ Route.get("/instructorProfile/:id", authenticate, authorizeRoles(ADMIN, USER, SC
 Route.patch("/:videoId/tags/add", authenticate, authorizeRoles(ADMIN), addTags);
 Route.patch("/:videoId/tags/remove", authenticate, authorizeRoles(ADMIN), removeTags);
 Route.put("/:videoId/tags/update", authenticate, authorizeRoles(ADMIN), updateTags);
+Route.get("/withSchoolTags", authenticate, authorizeRoles(ADMIN,SCHOOL), getAllVideosWithSchoolTags);
 
 
 export default Route;

@@ -1,12 +1,15 @@
 import mongoose, { Document, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
+import { ALLOWED_TABS } from "../lib/Utils/constants";
+
+export type AllowedTabType = typeof ALLOWED_TABS[number];
 
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
   password: string;
-  role: "admin" | "instructor" | "school" | "user";
+  role: "superadmin" | "admin" | "instructor" | "school" | "user";
   schoolId?: string;
   phone?: string;
   address?: string;
@@ -18,6 +21,8 @@ export interface IUser extends Document {
   approved?: boolean;
   resetPasswordToken?: string;
   resetPasswordExpires?: number;
+
+  allowedTabs?: AllowedTabType[];
 
   comparePassword: (candidatePassword: string) => boolean;
 }
@@ -31,7 +36,7 @@ const UserSchema = new Schema<IUser>(
     resetPasswordExpires: { type: Number },
     role: {
       type: String,
-      enum: ["admin", "instructor", "school", "user"],
+      enum: ["superadmin","admin", "instructor", "school", "user"],
       default: "user",
     },
     schoolId: { type: String },
@@ -40,6 +45,11 @@ const UserSchema = new Schema<IUser>(
     bio: { type: String },
     profileImage: { type: String },
     approved: { type: Boolean, default: false },
+    allowedTabs: {
+      type: [String],
+      enum: ALLOWED_TABS,
+      default: [],
+    },
   },
   {
     timestamps: { createdAt: "createdOn", updatedAt: "updatedOn" },
