@@ -15,7 +15,7 @@ Route.post("/logout",authenticate,logout)
 
 // Users can see their own profile, and Admin can see any user's profile
 Route.get("/profile", authenticate,getUserProfile);
-Route.get("/profile/:userId", authenticate, authorizeRoles(ADMIN),getUserProfile);
+Route.get("/profile/:userId", authenticate, authorizeRoles(ADMIN,SUPERADMIN),getUserProfile);
 
 Route.put("/update-profile/:userId",authenticate,uploadImages.single("profilePhoto"),updateUserProfile);
 
@@ -23,7 +23,7 @@ Route.put("/update-profile/:userId",authenticate,uploadImages.single("profilePho
 Route.put(
     "/approve-user/:userId",
     authenticate,
-    authorizeRoles(ADMIN,SCHOOL),
+    authorizeRoles(ADMIN,SUPERADMIN,SCHOOL),
     approveUser
   );
 
@@ -31,29 +31,29 @@ Route.put(
 Route.delete(
   "/reject-user/:userId",
   authenticate,
-  authorizeRoles(ADMIN), 
+  authorizeRoles(ADMIN,SUPERADMIN), 
   rejectUserbyAdmin
 );
 
 // Get all users who approved
 Route.get("/getAllApprovalUsers",  authenticate,
-  authorizeRoles(ADMIN), getApprovedUsers);
+  authorizeRoles(ADMIN,SUPERADMIN), getApprovedUsers);
 
 
 // Get all users who need approval
 Route.get("/getAllPendingUsers",  authenticate,
-  authorizeRoles(ADMIN), getPendingUsers);
+  authorizeRoles(ADMIN,SUPERADMIN), getPendingUsers);
 
 // Delete user permanently
 Route.delete("/delete-user/:userId",  authenticate,
-  authorizeRoles(ADMIN), RejectUsers);
+  authorizeRoles(ADMIN,SUPERADMIN), RejectUsers);
 
 
 // Admin also can create instructor or school users
 Route.post(
     "/create-user-by-admin",
     authenticate,
-    authorizeRoles(ADMIN), 
+    authorizeRoles(ADMIN,SUPERADMIN), 
     createUserByAdmin
   );
 

@@ -11,7 +11,7 @@ import {
 import { authenticate, authorizeRoles } from "../lib/Utils/Middleware";
 
 import { upload } from "../lib/Utils/s3Uploader";
-import { ADMIN, SCHOOL } from "../lib/Utils/constants";
+import { ADMIN, SCHOOL, SUPERADMIN } from "../lib/Utils/constants";
 
 
 const Route: Router = Router();
@@ -19,31 +19,31 @@ const Route: Router = Router();
 Route.post(
   "/upload",
   authenticate,
-  authorizeRoles(ADMIN, SCHOOL),
+  authorizeRoles(ADMIN,SUPERADMIN, SCHOOL),
   upload.single("file"),
   uploadImage
 );
 
 
-Route.put("/approve/:id", authenticate, authorizeRoles(ADMIN), approveImage);
-Route.put("/reject/:id", authenticate, authorizeRoles(ADMIN), rejectImage);
+Route.put("/approve/:id", authenticate, authorizeRoles(ADMIN,SUPERADMIN), approveImage);
+Route.put("/reject/:id", authenticate, authorizeRoles(ADMIN,SUPERADMIN), rejectImage);
 Route.get("/getGalleryImages", getGallery);
 Route.get(
   "/getPendingImages",
   authenticate,
-  authorizeRoles(ADMIN),
+  authorizeRoles(ADMIN,SUPERADMIN),
   getPendingImages
 );
 Route.put(
   "/update/:id",
   authenticate,
-  authorizeRoles(ADMIN, SCHOOL),
+  authorizeRoles(ADMIN,SUPERADMIN, SCHOOL),
   updateImage
 );
 Route.delete(
   "/delete/:id",
   authenticate,
-  authorizeRoles(ADMIN, SCHOOL),
+  authorizeRoles(ADMIN,SUPERADMIN, SCHOOL),
   deleteImage
 );
 

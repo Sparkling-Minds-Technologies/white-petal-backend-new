@@ -7,15 +7,15 @@ import {
   deleteVideoSettingById
 } from "../controllers/videoSettingController";
 import { authenticate, authorizeRoles } from "../lib/Utils/Middleware";
-import { ADMIN } from "../lib/Utils/constants";
+import { ADMIN, SUPERADMIN } from "../lib/Utils/constants";
 
 const Route: Router = Router();
 
 
-Route.post("/createVideosetting",authenticate, authorizeRoles(ADMIN), createVideoSetting);
+Route.post("/createVideosetting",authenticate, authorizeRoles(ADMIN,SUPERADMIN), createVideoSetting);
 Route.get("/getVideosetting", getVideoSetting); // frontend use
-Route.get("/getVideoSettingById/:id", authenticate, authorizeRoles(ADMIN), getVideoSettingById);
-Route.put("/updateVideosetting/:id",authenticate, authorizeRoles(ADMIN),  updateVideoSettingById);
-Route.delete("/deleteVideoSetting/:id",authenticate, authorizeRoles(ADMIN),  deleteVideoSettingById); // delete by ID
+Route.get("/getVideoSettingById/:id", authenticate, authorizeRoles(ADMIN,SUPERADMIN), getVideoSettingById);
+Route.put("/updateVideosetting/:id",authenticate, authorizeRoles(ADMIN,SUPERADMIN),  updateVideoSettingById);
+Route.delete("/deleteVideoSetting/:id",authenticate, authorizeRoles(ADMIN,SUPERADMIN),  deleteVideoSettingById); // delete by ID
 
 export default Route;

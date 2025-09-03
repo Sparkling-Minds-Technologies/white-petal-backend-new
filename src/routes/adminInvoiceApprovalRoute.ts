@@ -4,20 +4,20 @@ import {
   approveInvoice,
   rejectInvoice,
 } from "../controllers/adminInvoiceController";
-import { ADMIN } from "../lib/Utils/constants";
+import { ADMIN, SUPERADMIN } from "../lib/Utils/constants";
 
 const Route: Router = Router();
 
 Route.put(
   "/approve/invoice/:id",
   authenticate,
-  authorizeRoles(ADMIN),
+  authorizeRoles(ADMIN,SUPERADMIN),
   approveInvoice
 );
 Route.put(
   "/reject/invoice/:id",
   authenticate,
-  authorizeRoles(ADMIN),
+  authorizeRoles(ADMIN,SUPERADMIN),
   rejectInvoice
 );
 

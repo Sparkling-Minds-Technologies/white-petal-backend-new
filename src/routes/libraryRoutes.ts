@@ -2,7 +2,7 @@ import { Router } from "express";
 import {  deleteLibraryVideo, getAllLibraryVideo, getLibraryVideo, getLibraryVideoById, updateLibraryVideo, uploadLibraryVideo } from "../controllers/LibraryController";
 import { authenticate, authorizeRoles } from "../lib/Utils/Middleware";
 import multer from "multer";
-import { ADMIN } from "../lib/Utils/constants";
+import { ADMIN, SUPERADMIN } from "../lib/Utils/constants";
 
 const Route: Router = Router();
 const upload = multer({ dest: "uploads/" });
@@ -12,7 +12,7 @@ const upload = multer({ dest: "uploads/" });
 Route.post(
   "/uploadLibraryVideo",
   authenticate,
-  authorizeRoles(ADMIN),
+  authorizeRoles(ADMIN,SUPERADMIN),
   upload.fields([{ name: "video", maxCount: 1 }, { name: "coverImage", maxCount: 1 }]),
   uploadLibraryVideo
 );
@@ -32,12 +32,12 @@ Route.get("/allLibraryVideo", getAllLibraryVideo);
 Route.put(
   "/LibraryVideo/:id",
   authenticate,
-  authorizeRoles(ADMIN),
+  authorizeRoles(ADMIN,SUPERADMIN),
   upload.fields([{ name: "video", maxCount: 1 }, { name: "coverImage", maxCount: 1 }]),
   updateLibraryVideo
 );
 
 //   Delete a book (Admin & School)
-Route.delete("/LibraryVideo/:id", authenticate, authorizeRoles(ADMIN), deleteLibraryVideo);
+Route.delete("/LibraryVideo/:id", authenticate, authorizeRoles(ADMIN,SUPERADMIN), deleteLibraryVideo);
 
 export default Route;

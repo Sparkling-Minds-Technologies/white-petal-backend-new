@@ -6,20 +6,15 @@ import {
     getRecentWatchedVideos
 } from "../controllers/watchedVideoController";
 import { authenticate, authorizeRoles } from "../lib/Utils/Middleware";
+import { ADMIN, INSTRUCTOR, SCHOOL, SUPERADMIN, USER } from "../lib/Utils/constants";
 
 const Route: Router = Router();
 
-// Define roles
-const ADMIN = "admin";
-const INSTRUCTOR = "instructor";
-const SCHOOL = "school";
-const USER = "user";
-
 // Mark video as watched
-Route.post("/watched/:videoId", authenticate,authorizeRoles(ADMIN,INSTRUCTOR,SCHOOL,USER), markVideoAsWatched);
+Route.post("/watched/:videoId", authenticate,authorizeRoles(ADMIN,SUPERADMIN,INSTRUCTOR,SCHOOL,USER), markVideoAsWatched);
 
 // Get all users who watched a specific video
-Route.get("/watchedUsers/:videoId",authenticate,authorizeRoles(ADMIN,INSTRUCTOR), getWatchedUsers);
+Route.get("/watchedUsers/:videoId",authenticate,authorizeRoles(ADMIN,SUPERADMIN,INSTRUCTOR), getWatchedUsers);
 
 // Get all videos watched by the authenticated user
 Route.get("/user", authenticate,getUserWatchedVideos);

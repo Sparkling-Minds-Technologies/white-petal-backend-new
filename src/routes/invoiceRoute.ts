@@ -8,7 +8,7 @@ import {
   updateInvoice,
 } from "../controllers/invoiceController";
 import { authenticate, authorizeRoles } from "../lib/Utils/Middleware";
-import { ADMIN, INSTRUCTOR } from "../lib/Utils/constants";
+import { ADMIN, INSTRUCTOR, SUPERADMIN } from "../lib/Utils/constants";
 
 const Route: Router = Router();
 
@@ -21,7 +21,7 @@ Route.post(
 Route.get(
   "/getInvoices",
   authenticate,
-  authorizeRoles(INSTRUCTOR, ADMIN),
+  authorizeRoles(INSTRUCTOR, ADMIN,SUPERADMIN),
   getInvoices
 );
 Route.get(
