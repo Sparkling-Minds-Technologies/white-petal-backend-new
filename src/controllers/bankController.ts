@@ -43,6 +43,14 @@ export const createBankAccount = async (req: AuthRequest, res: Response): Promis
       bankAccount,
     });
   } catch (error: any) {
+    // Check for duplicate key error
+    if (error.code === 11000 && error.keyPattern?.userId) {
+      res.status(ResponseCode.VALIDATION_ERROR).json({
+        message: "Bank account already exists for this user",
+      });
+      return;
+    }
+
     res.status(ResponseCode.SERVER_ERROR).json({ message: error.message });
   }
 };

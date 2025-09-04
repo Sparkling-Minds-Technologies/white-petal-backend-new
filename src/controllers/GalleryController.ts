@@ -84,7 +84,7 @@ export const rejectImage = (req: AuthRequest, res: Response): void => {
 export const getGallery = (req: AuthRequest, res: Response): void => {
   const sortBy = req.query.sortBy === "newest" ? "-createdAt" : "createdAt";
 
-  Gallery.find({ approved: true })
+  Gallery.find()
     .sort(sortBy)
     .populate("uploadedBy", "name email")
     .then((images) => res.json({ images }))

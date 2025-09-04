@@ -41,6 +41,7 @@ const bankAccountSchema = new Schema<IBankAccount>(
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
+        unique: true,
     }
 
   },
