@@ -6,11 +6,14 @@ import { ResponseCode } from "../lib/Utils/ResponseCode";
 import { Res } from "../lib/datatype/common";
 import crypto from "crypto";
 import dotenv from "dotenv";
-import { resetPasswordTemplate, transporter, userCreatedByAdminTemplate } from "../lib/Utils/emailConfig";
+import {
+  resetPasswordTemplate,
+  transporter,
+  userCreatedByAdminTemplate,
+} from "../lib/Utils/emailConfig";
 import { ALLOWED_TABS, RESET_PASSWORD_EXPIRE } from "../lib/Utils/constants";
 import { AuthRequest } from "../lib/Utils/types";
 dotenv.config();
-
 
 const createToken = (user: IUser): string => {
   return jwt.sign(
@@ -19,7 +22,6 @@ const createToken = (user: IUser): string => {
     { expiresIn: "1d" }
   );
 };
-
 
 // Register User
 export const register = (req: Request, res: Response): void => {
@@ -73,7 +75,7 @@ export const register = (req: Request, res: Response): void => {
         phone,
         address,
         bio,
-        approved: userRole === "user" ? true : undefined, 
+        approved: userRole === "user" ? true : undefined,
       });
 
       return newUser.save();
@@ -185,7 +187,10 @@ export const login = (
 };
 
 // Forgot Password
-export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+export const forgotPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   console.log(req.body);
   const { email } = req.body;
   try {
@@ -206,18 +211,19 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       .digest("hex");
 
     user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpires = Date.now() + RESET_PASSWORD_EXPIRE; 
+    user.resetPasswordExpires = Date.now() + RESET_PASSWORD_EXPIRE;
     await user.save({ validateBeforeSave: false });
 
-
     const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-    const expireMinutes = Math.floor(Number(RESET_PASSWORD_EXPIRE) / (1000 * 60));
+    const expireMinutes = Math.floor(
+      Number(RESET_PASSWORD_EXPIRE) / (1000 * 60)
+    );
 
     const mailOptions = {
-        from: `"Your App Name" <${process.env.SMTP_MAIL}>`,
-        to: user.email,
-        subject: "Reset Your Password",
-        html: resetPasswordTemplate(user.name, resetLink, expireMinutes),
+      from: `"Your App Name" <${process.env.SMTP_MAIL}>`,
+      to: user.email,
+      subject: "Reset Your Password",
+      html: resetPasswordTemplate(user.name, resetLink, expireMinutes),
     };
 
     await transporter.sendMail(mailOptions);
@@ -236,7 +242,10 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
 };
 
 // Reset Password
-export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+export const resetPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { token } = req.params;
   const { password, confirmPassword } = req.body;
 
@@ -253,7 +262,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
     const user = await UserModel.findOne({
       resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() }, 
+      resetPasswordExpires: { $gt: Date.now() },
     });
 
     if (!user) {
@@ -264,7 +273,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    user.password = await bcrypt.hash(password, 10); 
+    user.password = await bcrypt.hash(password, 10);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save({ validateBeforeSave: false });
@@ -274,7 +283,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       message: "Password reset successful",
     });
   } catch (error) {
-    console.error("Error in resetPassword:", error); 
+    console.error("Error in resetPassword:", error);
     res.status(ResponseCode.SERVER_ERROR).json({
       status: false,
       message: "Server error",
@@ -391,13 +400,6 @@ export const rejectUserbyAdmin = (req: AuthRequest, res: Response): void => {
 };
 
 export const getApprovedUsers = (req: AuthRequest, res: Response): void => {
-  if (req.user?.role !== "admin") {
-    res
-      .status(ResponseCode.FORBIDDEN)
-      .json({ status: false, message: "Unauthorized" });
-    return;
-  }
-
   UserModel.find({ approved: true })
     .then((users) => {
       const filteredUsers = users.map((user) => ({
@@ -410,6 +412,7 @@ export const getApprovedUsers = (req: AuthRequest, res: Response): void => {
         // profileImage: user.profileImage,
         approved: user.approved,
         // createdOn: user.createdOn,
+        allowedTabs: user.allowedTabs,
       }));
 
       res.status(ResponseCode.SUCCESS).json({
@@ -425,14 +428,9 @@ export const getApprovedUsers = (req: AuthRequest, res: Response): void => {
     });
 };
 
-export const getPendingUsers = (req: AuthRequest, res: Response): void => {
-  if (req.user?.role !== "admin") {
-    res
-      .status(ResponseCode.FORBIDDEN)
-      .json({ status: false, message: "Unauthorized" });
-    return;
-  }
 
+
+export const getPendingUsers = (req: AuthRequest, res: Response): void => {
   UserModel.find({ approved: false })
     .then((users) => {
       const filteredUsers = users.map((user) => ({
@@ -486,7 +484,6 @@ export const RejectUsers = (req: AuthRequest, res: Response): void => {
         .json({ status: false, message: "Error deleting user" });
     });
 };
-
 
 // Admin creates Instructor, School, or Admin
 export const createUserByAdmin = (req: AuthRequest, res: Response): void => {
@@ -582,7 +579,10 @@ export const logout = (req: Request, res: Response): void => {
     .json({ status: true, message: "Successfully logged out" });
 };
 
-export const getUserProfile = (req: AuthRequest, res: Response<Res<IUser>>): void => {
+export const getUserProfile = (
+  req: AuthRequest,
+  res: Response<Res<IUser>>
+): void => {
   const { user } = req; // Extract the logged-in user from the token
   const { userId } = req.params; // Get userId from request params (for admin access)
 
@@ -623,7 +623,6 @@ export const updateUserProfile = (req: AuthRequest, res: Response): void => {
     });
     return;
   }
-
 
   const { name, email, address, phone } = req.body;
   const userId = req.params.userId;
@@ -720,9 +719,12 @@ export const updateUserProfile = (req: AuthRequest, res: Response): void => {
         });
       });
   }
-}; 
+};
 
-export const updateAllowedTabs = async (req: Request, res: Response): Promise<void> => {
+export const updateAllowedTabs = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { userId } = req.params;
     const { allowedTabs } = req.body;
@@ -735,10 +737,14 @@ export const updateAllowedTabs = async (req: Request, res: Response): Promise<vo
     }
 
     // Validate each tab against allowed enum
-    const invalidTabs = allowedTabs.filter((tab: string) => !ALLOWED_TABS.includes(tab as AllowedTabType));
+    const invalidTabs = allowedTabs.filter(
+      (tab: string) => !ALLOWED_TABS.includes(tab as AllowedTabType)
+    );
     if (invalidTabs.length > 0) {
       res.status(ResponseCode.BAD_REQUEST).json({
-        message: `Invalid tabs: ${invalidTabs.join(", ")}. Allowed tabs are: ${ALLOWED_TABS.join(", ")}`,
+        message: `Invalid tabs: ${invalidTabs.join(
+          ", "
+        )}. Allowed tabs are: ${ALLOWED_TABS.join(", ")}`,
       });
       return;
     }
@@ -750,7 +756,9 @@ export const updateAllowedTabs = async (req: Request, res: Response): Promise<vo
     }
 
     if (user.role !== "admin" && user.role !== "superadmin") {
-      res.status(ResponseCode.FORBIDDEN).json({ message: "Only admin or superadmin can have allowedTabs" });
+      res
+        .status(ResponseCode.FORBIDDEN)
+        .json({ message: "Only admin or superadmin can have allowedTabs" });
       return;
     }
 
